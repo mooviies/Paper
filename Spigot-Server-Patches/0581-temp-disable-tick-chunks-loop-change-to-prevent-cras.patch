@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Mon, 14 Sep 2020 01:52:47 -0400
+Subject: [PATCH] temp disable tick chunks loop change to prevent crash risk
+
+
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index d119d68bb69baecdd7b896e6efb41251fa226adb..de5c45ec773474ad6a7b572e9a248c8f8ee0f94f 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -824,8 +824,9 @@ public class ChunkProviderServer extends IChunkProvider {
+             //Collections.shuffle(list); // Paper
+             // Paper - moved up
+             final int[] chunksTicked = {0};
+-            for (LongIterator iterator = this.playerChunkMap.loadedChunks.iterator() ; iterator.hasNext() ; ) { // Paper - iterate only loaded chunks
+-                PlayerChunk playerchunk = this.playerChunkMap.getVisibleChunk(iterator.nextLong());// Paper - iterate only loaded chunks
++            this.playerChunkMap.forEachVisibleChunk((playerchunk) -> {
++            //for (LongIterator iterator = this.playerChunkMap.loadedChunks.iterator() ; iterator.hasNext() ; ) { // Paper - iterate only loaded chunks
++                //PlayerChunk playerchunk = this.playerChunkMap.getVisibleChunk(iterator.nextLong());// Paper - iterate only loaded chunks
+                 Optional<Chunk> optional = ((Either) playerchunk.a().getNow(PlayerChunk.UNLOADED_CHUNK)).left();
+ 
+                 if (optional.isPresent()) {
+@@ -853,7 +854,7 @@ public class ChunkProviderServer extends IChunkProvider {
+                         }
+                     }
+                 }
+-            };// Paper - use for instead of forEachVisibleChunk
++            });// Paper - use for instead of forEachVisibleChunk
+             this.world.getMethodProfiler().enter("customSpawners");
+             if (flag1) {
+                 try (co.aikar.timings.Timing ignored = this.world.timings.miscMobSpawning.startTiming()) { // Paper - timings
