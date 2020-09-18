@@ -1,0 +1,84 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Keven Chausse <kevenchausse@gmail.com>
+Date: Fri, 18 Sep 2020 14:15:49 -0400
+Subject: [PATCH] Added missing ClientOp interface implementation
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 611bb13274763329c502c2ceed9cefb2a847f321..79d9e9df5ee850ccc699ba64e36bfaa9872b7935 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -1028,6 +1028,11 @@ public abstract class PlayerList {
+         }
+         return true;
+     }
++
++    public boolean isClientOp(GameProfile gameprofile) {
++        return this.clientOperators.d(gameprofile);
++    }
++
+     // Paper end
+ 
+     public boolean isOp(GameProfile gameprofile) {
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java b/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
+index 32e02af96e8f8db68509022f742a1239c9b7b4c7..ab80c92025c1e6fbc5c533fef23859584070e078 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
+@@ -79,6 +79,26 @@ public class CraftOfflinePlayer implements OfflinePlayer, ConfigurationSerializa
+         return server;
+     }
+ 
++    // Paper start
++    @Override
++    public boolean isClientOp() {
++        return server.getHandle().isClientOp(profile);
++    }
++
++    @Override
++    public void setClientOp(boolean value) {
++        if (value == isClientOp()) {
++            return;
++        }
++
++        if (value) {
++            server.getHandle().addClientOp(profile);
++        } else {
++            server.getHandle().removeClientOp(profile);
++        }
++    }
++    // Paper end
++
+     @Override
+     public boolean isOp() {
+         return server.getHandle().isOp(profile);
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+index 141003ca718cc6ba113de8e4855b18252b293ef6..3e16c4498bb398e36fc65e6410ffa13348897370 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+@@ -155,6 +155,26 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+         return getHandle().getProfile();
+     }
+ 
++    // Paper start
++    @Override
++    public boolean isClientOp() {
++        return server.getHandle().isClientOp(getProfile());
++    }
++
++    @Override
++    public void setClientOp(boolean value) {
++        if (value == isClientOp()) return;
++
++        if (value) {
++            server.getHandle().addClientOp(getProfile());
++        } else {
++            server.getHandle().removeClientOp(getProfile());
++        }
++
++        perm.recalculatePermissions();
++    }
++    // Paper end
++
+     @Override
+     public boolean isOp() {
+         return server.getHandle().isOp(getProfile());

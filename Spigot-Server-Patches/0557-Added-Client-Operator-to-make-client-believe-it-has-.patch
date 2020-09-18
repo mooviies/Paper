@@ -1,0 +1,218 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Keven Chausse <kevenchausse@gmail.com>
+Date: Fri, 18 Sep 2020 13:57:42 -0400
+Subject: [PATCH] Added Client Operator to make client believe it has operators
+ right when it does not
+
+
+diff --git a/src/main/java/net/minecraft/server/DedicatedPlayerList.java b/src/main/java/net/minecraft/server/DedicatedPlayerList.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..58659e72108a0d6f640676767c3c0c9b41d38000
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/DedicatedPlayerList.java
+@@ -0,0 +1,151 @@
++//
++// Source code recreated from a .class file by IntelliJ IDEA
++// (powered by FernFlower decompiler)
++//
++
++package net.minecraft.server;
++
++import com.mojang.authlib.GameProfile;
++import java.io.IOException;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++
++public class DedicatedPlayerList extends PlayerList {
++    private static final Logger LOGGER = LogManager.getLogger();
++
++    public DedicatedPlayerList(DedicatedServer var0) {
++        super(var0, var0.getDedicatedServerProperties().maxPlayers);
++        DedicatedServerProperties var1 = var0.getDedicatedServerProperties();
++        this.a(var1.viewDistance);
++        super.setHasWhitelist((Boolean)var1.whiteList.get());
++        if (!var0.isEmbeddedServer()) {
++            this.getProfileBans().a(true);
++            this.getIPBans().a(true);
++        }
++
++        this.z();
++        this.x();
++        this.y();
++        this.w();
++        this.A();
++        this.C();
++        this.B();
++        if (!this.getWhitelist().c().exists()) {
++            this.D();
++        }
++
++    }
++
++    public void setHasWhitelist(boolean var0) {
++        super.setHasWhitelist(var0);
++        this.getServer().setHasWhitelist(var0);
++    }
++
++    public void addClientOp(GameProfile var0) {
++        super.addClientOp(var0);
++        this.B();
++    }
++
++    public void removeClientOp(GameProfile var0) {
++        super.removeClientOp(var0);
++        this.B();
++    }
++
++    public void addOp(GameProfile var0) {
++        super.addOp(var0);
++        this.B();
++    }
++
++    public void removeOp(GameProfile var0) {
++        super.removeOp(var0);
++        this.B();
++    }
++
++    public void reloadWhitelist() {
++        this.C();
++    }
++
++    private void w() {
++        try {
++            this.getIPBans().save();
++        } catch (IOException var2) {
++            LOGGER.warn("Failed to save ip banlist: ", var2);
++        }
++
++    }
++
++    private void x() {
++        try {
++            this.getProfileBans().save();
++        } catch (IOException var2) {
++            LOGGER.warn("Failed to save user banlist: ", var2);
++        }
++
++    }
++
++    private void y() {
++        try {
++            this.getIPBans().load();
++        } catch (IOException var2) {
++            LOGGER.warn("Failed to load ip banlist: ", var2);
++        }
++
++    }
++
++    private void z() {
++        try {
++            this.getProfileBans().load();
++        } catch (IOException var2) {
++            LOGGER.warn("Failed to load user banlist: ", var2);
++        }
++
++    }
++
++    private void A() {
++        try {
++            this.getOPs().load();
++        } catch (Exception var2) {
++            LOGGER.warn("Failed to load operators list: ", var2);
++        }
++
++    }
++
++    private void B() {
++        try {
++            this.getOPs().save();
++        } catch (Exception var2) {
++            LOGGER.warn("Failed to save operators list: ", var2);
++        }
++
++    }
++
++    private void C() {
++        try {
++            this.getWhitelist().load();
++        } catch (Exception var2) {
++            LOGGER.warn("Failed to load white-list: ", var2);
++        }
++
++    }
++
++    private void D() {
++        try {
++            this.getWhitelist().save();
++        } catch (Exception var2) {
++            LOGGER.warn("Failed to save white-list: ", var2);
++        }
++
++    }
++
++    public boolean isWhitelisted(GameProfile var0) {
++        return !this.getHasWhitelist() || this.isOp(var0) || this.getWhitelist().isWhitelisted(var0);
++    }
++
++    public DedicatedServer getServer() {
++        return (DedicatedServer)super.getServer();
++    }
++
++    public boolean f(GameProfile var0) {
++        return this.getOPs().b(var0);
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 5b634f2385f6dbb62cf3884daabded3870e8b8cc..611bb13274763329c502c2ceed9cefb2a847f321 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -49,6 +49,7 @@ public abstract class PlayerList {
+     public static final File c = new File("banned-ips.json");
+     public static final File d = new File("ops.json");
+     public static final File e = new File("whitelist.json");
++    public static final File f = new File("clientops.json");
+     private static final Logger LOGGER = LogManager.getLogger();
+     private static final SimpleDateFormat g = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+     private final MinecraftServer server;
+@@ -57,6 +58,7 @@ public abstract class PlayerList {
+     private final GameProfileBanList k;
+     private final IpBanList l;
+     private final OpList operators;
++    private final OpList clientOperators;
+     private final WhiteList whitelist;
+     private final Map<UUID, EntityPlayer> pendingPlayers = Maps.newHashMap(); // Paper
+     // CraftBukkit start
+@@ -84,6 +86,7 @@ public abstract class PlayerList {
+         this.k = new GameProfileBanList(PlayerList.b);
+         this.l = new IpBanList(PlayerList.c);
+         this.operators = new OpList(PlayerList.d);
++        this.clientOperators = new OpList(PlayerList.f);
+         this.whitelist = new WhiteList(PlayerList.e);
+         // CraftBukkit start
+         // this.o = Maps.newHashMap();
+@@ -949,6 +952,25 @@ public abstract class PlayerList {
+         return this.l;
+     }
+ 
++    public void addClientOp(GameProfile gameprofile)
++    {
++        this.clientOperators.add(new OpListEntry(gameprofile, this.server.j(), this.operators.b(gameprofile)));
++        EntityPlayer entityplayer = this.a(gameprofile.getId());
++        if (entityplayer != null) {
++            this.d(entityplayer);
++        }
++    }
++
++    public void removeClientOp(GameProfile gameprofile) {
++        this.clientOperators.remove(gameprofile);
++        EntityPlayer entityplayer = this.a(gameprofile.getId());
++
++        if (entityplayer != null) {
++            this.d(entityplayer);
++        }
++
++    }
++
+     public void addOp(GameProfile gameprofile) {
+         this.operators.add(new OpListEntry(gameprofile, this.server.j(), this.operators.b(gameprofile)));
+         EntityPlayer entityplayer = this.a(gameprofile.getId());

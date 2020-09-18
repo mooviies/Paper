@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Keven Chausse <kevenchausse@gmail.com>
+Date: Fri, 18 Sep 2020 14:15:30 -0400
+Subject: [PATCH] Added paper start/end
+
+
+diff --git a/src/main/java/org/bukkit/OfflinePlayer.java b/src/main/java/org/bukkit/OfflinePlayer.java
+index dc5c3903818d107adf07f9c10c5e42c91d0fe0c4..25cfef1b1e22aa1e05f56ef40849f77ef7268bd9 100644
+--- a/src/main/java/org/bukkit/OfflinePlayer.java
++++ b/src/main/java/org/bukkit/OfflinePlayer.java
+@@ -9,9 +9,9 @@ import org.bukkit.permissions.ClientOperator;
+ import org.bukkit.permissions.ServerOperator;
+ import org.jetbrains.annotations.NotNull;
+ import org.jetbrains.annotations.Nullable;
+-
++// Paper start
+ public interface OfflinePlayer extends ServerOperator, AnimalTamer, ConfigurationSerializable, ClientOperator {
+-
++// Paper end
+     /**
+      * Checks if this player is currently online
+      *
+diff --git a/src/main/java/org/bukkit/permissions/ClientOperator.java b/src/main/java/org/bukkit/permissions/ClientOperator.java
+index 0f775547dbc8f4e66f7d02b7af5e6ffdbd5e2910..960bccbc85dab3df48928651f279bb9a150453cb 100644
+--- a/src/main/java/org/bukkit/permissions/ClientOperator.java
++++ b/src/main/java/org/bukkit/permissions/ClientOperator.java
+@@ -1,6 +1,7 @@
+ package org.bukkit.permissions;
+-
++// Paper start
+ public interface ClientOperator {
+     public boolean isClientOp();
+     public void setClientOp(boolean value);
+ }
++// Paper end

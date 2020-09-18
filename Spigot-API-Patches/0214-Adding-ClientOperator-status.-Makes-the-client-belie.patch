@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Keven Chausse <kevenchausse@gmail.com>
+Date: Fri, 18 Sep 2020 13:55:37 -0400
+Subject: [PATCH] Adding ClientOperator status. Makes the client believe it has
+ operators rights when it doesn't.
+
+
+diff --git a/src/main/java/org/bukkit/OfflinePlayer.java b/src/main/java/org/bukkit/OfflinePlayer.java
+index 3afd5f5c0208a4ee93b5dbfc2aab2b9d2e8a7544..dc5c3903818d107adf07f9c10c5e42c91d0fe0c4 100644
+--- a/src/main/java/org/bukkit/OfflinePlayer.java
++++ b/src/main/java/org/bukkit/OfflinePlayer.java
+@@ -5,11 +5,12 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
+ import org.bukkit.entity.AnimalTamer;
+ import org.bukkit.entity.EntityType;
+ import org.bukkit.entity.Player;
++import org.bukkit.permissions.ClientOperator;
+ import org.bukkit.permissions.ServerOperator;
+ import org.jetbrains.annotations.NotNull;
+ import org.jetbrains.annotations.Nullable;
+ 
+-public interface OfflinePlayer extends ServerOperator, AnimalTamer, ConfigurationSerializable {
++public interface OfflinePlayer extends ServerOperator, AnimalTamer, ConfigurationSerializable, ClientOperator {
+ 
+     /**
+      * Checks if this player is currently online
+diff --git a/src/main/java/org/bukkit/permissions/ClientOperator.java b/src/main/java/org/bukkit/permissions/ClientOperator.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9f638a6f26d66924036f05b1e7e8991ce5784232
+--- /dev/null
++++ b/src/main/java/org/bukkit/permissions/ClientOperator.java
+@@ -0,0 +1,6 @@
++package org.bukkit.permissions;
++
++public interface ClientOperator {
++    public boolean isClientOp()
++    public void setClientOp(boolean value);
++}

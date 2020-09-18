@@ -1,0 +1,103 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Keven Chausse <kevenchausse@gmail.com>
+Date: Fri, 18 Sep 2020 14:44:30 -0400
+Subject: [PATCH] Added json client ops list
+
+
+diff --git a/src/main/java/net/minecraft/server/DedicatedPlayerList.java b/src/main/java/net/minecraft/server/DedicatedPlayerList.java
+index 58659e72108a0d6f640676767c3c0c9b41d38000..0b1d3224cc264fc1d0a83917a9e5cf3011b749dc 100644
+--- a/src/main/java/net/minecraft/server/DedicatedPlayerList.java
++++ b/src/main/java/net/minecraft/server/DedicatedPlayerList.java
+@@ -30,6 +30,7 @@ public class DedicatedPlayerList extends PlayerList {
+         this.A();
+         this.C();
+         this.B();
++        this.BClient();
+         if (!this.getWhitelist().c().exists()) {
+             this.D();
+         }
+@@ -43,12 +44,12 @@ public class DedicatedPlayerList extends PlayerList {
+ 
+     public void addClientOp(GameProfile var0) {
+         super.addClientOp(var0);
+-        this.B();
++        this.BClient();
+     }
+ 
+     public void removeClientOp(GameProfile var0) {
+         super.removeClientOp(var0);
+-        this.B();
++        this.BClient();
+     }
+ 
+     public void addOp(GameProfile var0) {
+@@ -119,6 +120,17 @@ public class DedicatedPlayerList extends PlayerList {
+ 
+     }
+ 
++    // Paper start
++    private void BClient() {
++        try {
++            this.getClientOps().save();
++        } catch (Exception var2) {
++            LOGGER.warn("Failed to save client operators list: ", var2);
++        }
++
++    }
++    // Paper end
++
+     private void C() {
+         try {
+             this.getWhitelist().load();
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 5c71efe494faaf7427f82036d60cc81447e4b12c..bbe4abc97461d62d6b124e29ed138b2e29bbe56f 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -2114,15 +2114,21 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         return this.av;
+     }
+ 
++    // Paper start
+     public int b(GameProfile gameprofile) {
+         if (this.getPlayerList().isOp(gameprofile)) {
+             OpListEntry oplistentry = (OpListEntry) this.getPlayerList().getOPs().get(gameprofile);
+ 
++            return oplistentry != null ? oplistentry.a() : (this.a(gameprofile) ? 4 : (this.isEmbeddedServer() ? (this.getPlayerList().v() ? 4 : 0) : this.j()));
++        } else if (this.getPlayerList().isClientOp(gameprofile)) {
++            OpListEntry oplistentry = (OpListEntry) this.getPlayerList().getClientOps().get(gameprofile);
++
+             return oplistentry != null ? oplistentry.a() : (this.a(gameprofile) ? 4 : (this.isEmbeddedServer() ? (this.getPlayerList().v() ? 4 : 0) : this.j()));
+         } else {
+             return 0;
+         }
+     }
++    // Paper end
+ 
+     public GameProfiler getMethodProfiler() {
+         return this.methodProfiler;
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 79d9e9df5ee850ccc699ba64e36bfaa9872b7935..0bfe366b402854552757a05a4922dc532793fb9f 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -954,7 +954,7 @@ public abstract class PlayerList {
+ 
+     public void addClientOp(GameProfile gameprofile)
+     {
+-        this.clientOperators.add(new OpListEntry(gameprofile, this.server.j(), this.operators.b(gameprofile)));
++        this.clientOperators.add(new OpListEntry(gameprofile, this.server.j(), this.clientOperators.b(gameprofile)));
+         EntityPlayer entityplayer = this.a(gameprofile.getId());
+         if (entityplayer != null) {
+             this.d(entityplayer);
+@@ -1121,6 +1121,12 @@ public abstract class PlayerList {
+         return this.whitelist.getEntries();
+     }
+ 
++    // Paper start
++    public OpList getClientOps() {
++        return this.clientOperators;
++    }
++    // Paper end
++
+     public OpList getOPs() {
+         return this.operators;
+     }

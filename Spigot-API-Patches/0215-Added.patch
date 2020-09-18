@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Keven Chausse <kevenchausse@gmail.com>
+Date: Fri, 18 Sep 2020 14:01:20 -0400
+Subject: [PATCH] Added ;
+
+
+diff --git a/src/main/java/org/bukkit/permissions/ClientOperator.java b/src/main/java/org/bukkit/permissions/ClientOperator.java
+index 9f638a6f26d66924036f05b1e7e8991ce5784232..0f775547dbc8f4e66f7d02b7af5e6ffdbd5e2910 100644
+--- a/src/main/java/org/bukkit/permissions/ClientOperator.java
++++ b/src/main/java/org/bukkit/permissions/ClientOperator.java
+@@ -1,6 +1,6 @@
+ package org.bukkit.permissions;
+ 
+ public interface ClientOperator {
+-    public boolean isClientOp()
++    public boolean isClientOp();
+     public void setClientOp(boolean value);
+ }
